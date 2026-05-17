@@ -27,7 +27,7 @@ export default async function CountryPage({ params }: PageProps) {
       <header>
         <h1 className="text-3xl font-bold">{decoded}</h1>
         <p className="mt-2 text-sm text-slate-400">
-          {items.length} articles · avg risk {avgRisk} · avg geopolitical impact {avgGeo}
+          {items.length} 篇文章 · 平均风险 {avgRisk} · 平均地缘影响 {avgGeo}
         </p>
       </header>
       <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

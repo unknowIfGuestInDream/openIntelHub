@@ -2,11 +2,43 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Default (dark) tokens — used when the user's OS/browser prefers dark, or as a fallback. */
 :root {
-  color-scheme: dark;
+  color-scheme: light dark;
+  --bg-page: #0b1020;
+  --fg-page: #e2e8f0;
 }
 
 html, body {
-  background: #0b1020;
-  color: #e2e8f0;
+  background: var(--bg-page);
+  color: var(--fg-page);
+}
+
+/*
+ * Light theme: when the browser/OS prefers a light color scheme we re-map the
+ * Tailwind slate-* utilities used throughout the app so the existing markup
+ * stays readable without sprinkling `dark:` variants on every element.
+ */
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg-page: #f8fafc;
+    --fg-page: #0f172a;
+  }
+
+  /* Text */
+  .text-slate-100 { color: #0f172a; }
+  .text-slate-200 { color: #1e293b; }
+  .text-slate-300 { color: #334155; }
+  .text-slate-400 { color: #475569; }
+  .text-slate-500 { color: #64748b; }
+
+  /* Surfaces */
+  .bg-slate-800 { background-color: #e2e8f0; }
+  .bg-slate-900 { background-color: #ffffff; }
+  .bg-slate-900\/60 { background-color: rgba(255, 255, 255, 0.7); }
+  .bg-slate-950\/80 { background-color: rgba(248, 250, 252, 0.85); }
+
+  /* Borders */
+  .border-slate-700 { border-color: #cbd5e1; }
+  .border-slate-800 { border-color: #e2e8f0; }
 }

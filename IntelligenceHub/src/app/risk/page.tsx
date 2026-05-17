@@ -26,14 +26,14 @@ export default async function RiskPage() {
   return (
     <div className="space-y-8">
       <header>
-        <h1 className="text-3xl font-bold">AI risk analysis</h1>
+        <h1 className="text-3xl font-bold">AI 风险分析</h1>
         <p className="mt-2 text-sm text-slate-400">
-          Geopolitical and security risk derived from the AI scoring layer.
+          基于 AI 评分层得出的地缘政治与安全风险趋势。
         </p>
       </header>
 
       <section className="rounded border border-slate-800 bg-slate-900/60 p-4">
-        <h2 className="mb-2 text-lg font-semibold">Risk trend (peak per day)</h2>
+        <h2 className="mb-2 text-lg font-semibold">风险趋势（每日峰值）</h2>
         <Chart
           option={{
             backgroundColor: 'transparent',
@@ -46,7 +46,7 @@ export default async function RiskPage() {
       </section>
 
       <section className="rounded border border-slate-800 bg-slate-900/60 p-4">
-        <h2 className="mb-2 text-lg font-semibold">Peak risk by country</h2>
+        <h2 className="mb-2 text-lg font-semibold">各国风险峰值</h2>
         <Chart
           option={{
             backgroundColor: 'transparent',
