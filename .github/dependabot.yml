@@ -1,77 +1,48 @@
 version: 2
 updates:
-  # 根 workspace（含 IntelligenceHub 和 intel-collector 两个 workspace 的依赖）
-  - package-ecosystem: "npm"
-    directory: "/"
+  # 根 workspace 已经包含 IntelligenceHub 与 intel-collector 两个 workspace 的依赖，
+  # 因此只在根目录配置一次即可，避免重复 PR。
+  - package-ecosystem: 'npm'
+    directory: '/'
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "08:00"
-      timezone: "Asia/Shanghai"
+      interval: 'weekly'
+      day: 'monday'
+      time: '08:00'
+      timezone: 'Asia/Shanghai'
     open-pull-requests-limit: 10
     reviewers:
-      - "unknowIfGuestInDream"
+      - 'unknowIfGuestInDream'
     commit-message:
-      prefix: "chore"
-      include: "scope"
+      prefix: 'chore'
+      include: 'scope'
     groups:
       next-ecosystem:
         patterns:
-          - "next"
-          - "eslint-config-next"
-          - "@next/*"
+          - 'next'
+          - 'eslint-config-next'
+          - '@next/*'
       react-ecosystem:
         patterns:
-          - "react"
-          - "react-dom"
-          - "@types/react*"
+          - 'react'
+          - 'react-dom'
+          - '@types/react*'
       typescript-eslint:
         patterns:
-          - "typescript"
-          - "@typescript-eslint/*"
-          - "eslint"
-
-  # IntelligenceHub workspace
-  - package-ecosystem: "npm"
-    directory: "/IntelligenceHub"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "08:00"
-      timezone: "Asia/Shanghai"
-    open-pull-requests-limit: 5
-    reviewers:
-      - "unknowIfGuestInDream"
-    commit-message:
-      prefix: "chore"
-      include: "scope"
-
-  # intel-collector workspace
-  - package-ecosystem: "npm"
-    directory: "/intel-collector"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "08:00"
-      timezone: "Asia/Shanghai"
-    open-pull-requests-limit: 5
-    reviewers:
-      - "unknowIfGuestInDream"
-    commit-message:
-      prefix: "chore"
-      include: "scope"
+          - 'typescript'
+          - '@typescript-eslint/*'
+          - 'eslint'
 
   # GitHub Actions workflows
-  - package-ecosystem: "github-actions"
-    directory: "/"
+  - package-ecosystem: 'github-actions'
+    directory: '/'
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "08:00"
-      timezone: "Asia/Shanghai"
+      interval: 'weekly'
+      day: 'monday'
+      time: '08:00'
+      timezone: 'Asia/Shanghai'
     open-pull-requests-limit: 5
     reviewers:
-      - "unknowIfGuestInDream"
+      - 'unknowIfGuestInDream'
     commit-message:
-      prefix: "ci"
-      include: "scope"
+      prefix: 'ci'
+      include: 'scope'
