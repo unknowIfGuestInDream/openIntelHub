@@ -27,9 +27,15 @@ jobs:
 
       - name: Collect & analyze news
         env:
-          # If unset, the heuristic analyzer is used (no key required).
+          # AI provider selection. Set repo variable AI_PROVIDER to one of:
+          #   heuristic (default, no deps)
+          #   ollama    (local LLM via Ollama, needs a self-hosted runner with Ollama)
+          #   openai    (uses OPENAI_API_KEY below)
+          AI_PROVIDER: ${{ vars.AI_PROVIDER }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
+          OLLAMA_BASE_URL: ${{ vars.OLLAMA_BASE_URL }}
+          OLLAMA_MODEL: ${{ vars.OLLAMA_MODEL }}
           NODE_ENV: production
         run: npm run collect -w intel-collector
 

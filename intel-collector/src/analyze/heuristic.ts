@@ -42,6 +42,24 @@ const BIAS_BY_DOMAIN: Record<string, NarrativeBias> = {
   'news.cn': 'state',
   'chinanews.com': 'state',
   'investing.com': 'center',
+  'theguardian.com': 'center-left',
+  'nytimes.com': 'center-left',
+  'cnn.com': 'center-left',
+  'washingtonpost.com': 'center-left',
+  'france24.com': 'center',
+  'lemonde.fr': 'center-left',
+  'spiegel.de': 'center-left',
+  'scmp.com': 'center',
+  'timesofindia.indiatimes.com': 'center-right',
+  'thehindu.com': 'center-left',
+  'yna.co.kr': 'center',
+  'straitstimes.com': 'center',
+  'jpost.com': 'center-right',
+  'g1.globo.com': 'center',
+  'sputnikglobe.com': 'state',
+  'rt.com': 'state',
+  'cgtn.com': 'state',
+  'globaltimes.cn': 'state',
 };
 
 /**
@@ -53,6 +71,12 @@ const CREDIBILITY_BY_DOMAIN: Record<string, number> = {
   'dw.com': 84, 'rfi.fr': 82, 'elpais.com': 80, 'nhk.or.jp': 86,
   'aa.com.tr': 72, 'ntv.com.tr': 70, 'tass.com': 60, 'voanews.com': 70,
   'news.cn': 60, 'chinanews.com': 62, 'investing.com': 74,
+  'theguardian.com': 84, 'nytimes.com': 86, 'cnn.com': 78,
+  'washingtonpost.com': 84, 'france24.com': 80, 'lemonde.fr': 84,
+  'spiegel.de': 84, 'scmp.com': 76, 'timesofindia.indiatimes.com': 72,
+  'thehindu.com': 80, 'yna.co.kr': 80, 'straitstimes.com': 78,
+  'jpost.com': 74, 'g1.globo.com': 76,
+  'sputnikglobe.com': 50, 'rt.com': 50, 'cgtn.com': 58, 'globaltimes.cn': 56,
 };
 
 function countMatches(haystack: string, needles: string[]): number {

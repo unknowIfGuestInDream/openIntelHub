@@ -2,14 +2,16 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { SOURCES, getSourceByDomain } from '../src/config/sources.ts';
 
-test('source registry includes the 15 outlets from the issue', () => {
-  const expected = [
+test('source registry includes at least the 15 outlets from the issue', () => {
+  const required = [
     'aa.com.tr', 'abc.net.au', 'aljazeera.com', 'bbc.com', 'cbc.ca',
     'chinanews.com', 'dw.com', 'elpais.com', 'investing.com', 'news.cn',
     'nhk.or.jp', 'ntv.com.tr', 'rfi.fr', 'tass.com', 'voanews.com',
   ];
-  const got = SOURCES.map((s) => s.domain).sort();
-  assert.deepEqual(got, [...expected].sort());
+  const got = new Set(SOURCES.map((s) => s.domain));
+  for (const d of required) assert.ok(got.has(d), `missing required source ${d}`);
+  // We've added more outlets on top of the original 15.
+  assert.ok(SOURCES.length >= 15, `expected >= 15 sources, got ${SOURCES.length}`);
 });
 
 test('every source has at least one feed url and required metadata', () => {
