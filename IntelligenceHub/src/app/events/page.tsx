@@ -18,22 +18,22 @@ export default async function EventsPage() {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="text-3xl font-bold">Event clusters</h1>
+        <h1 className="text-3xl font-bold">事件聚类</h1>
         <p className="mt-2 text-sm text-slate-400">
-          Cross-source events detected by title similarity ({clusters.length} clusters).
+          基于标题相似度检测的跨信息源事件（共 {clusters.length} 个聚类）。
         </p>
       </header>
 
       {clusters.length === 0 && (
-        <p className="text-slate-400">No clusters yet — run the collector with more sources.</p>
+        <p className="text-slate-400">暂无聚类 — 请采集更多信息源后再试。</p>
       )}
 
       <ul className="space-y-4">
         {clusters.map((c) => (
           <li key={c.id} className="rounded border border-slate-800 bg-slate-900/60 p-4">
             <div className="mb-2 flex items-center justify-between text-xs text-slate-400">
-              <span>Cluster {c.id}</span>
-              <span>{c.items.length} sources</span>
+              <span>聚类 {c.id}</span>
+              <span>{c.items.length} 个信息源</span>
             </div>
             <ul className="space-y-1 text-sm">
               {c.items.map((i) => (

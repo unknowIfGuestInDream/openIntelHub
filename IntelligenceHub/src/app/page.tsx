@@ -4,22 +4,33 @@ import { NewsCard } from '@/components/NewsCard';
 
 export default async function HomePage() {
   const data = await loadNews();
-  const topItems = data.items.slice(0, 24);
+  // Only show items from the snapshot's "today" by default; a History entry
+  // exposes older daily reports. Fallback to all items when nothing matches
+  // (e.g. on first deploy when only seed/sample data is present).
+  const today = (data.generatedAt || new Date().toISOString()).slice(0, 10);
+  const todayItems = data.items.filter((i) => i.publishedAt.slice(0, 10) === today);
+  const visible = (todayItems.length > 0 ? todayItems : data.items).slice(0, 24);
   const countries = [...new Set(data.items.map((i) => i.source.country))].sort();
 
   return (
     <div className="space-y-8">
       <header>
-        <h1 className="text-3xl font-bold text-slate-100">Global News Intelligence</h1>
+        <h1 className="text-3xl font-bold text-slate-100">全球新闻情报</h1>
         <p className="mt-2 text-slate-400">
-          {data.totalArticles} articles from {data.totalSources} sources · generated{' '}
-          {new Date(data.generatedAt).toLocaleString()}
+          {data.totalArticles} 篇文章 · {data.totalSources} 个信息源 · 生成于{' '}
+          {new Date(data.generatedAt).toLocaleString('zh-CN')}
+        </p>
+        <p className="mt-1 text-xs text-slate-500">
+          默认仅显示当日（{today}）的新闻 ·{' '}
+          <Link href="/history/" className="text-brand-500 hover:underline">
+            查看历史日报
+          </Link>
         </p>
       </header>
 
       {countries.length > 0 && (
         <section>
-          <h2 className="mb-2 text-sm uppercase tracking-wide text-slate-400">Filter by country</h2>
+          <h2 className="mb-2 text-sm uppercase tracking-wide text-slate-400">按国家筛选</h2>
           <ul className="flex flex-wrap gap-2 text-sm">
             {countries.map((c) => (
               <li key={c}>
@@ -36,12 +47,12 @@ export default async function HomePage() {
       )}
 
       <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {topItems.length === 0 ? (
+        {visible.length === 0 ? (
           <p className="col-span-full text-slate-400">
-            No news yet — run <code>npm run collect</code> to populate data.
+            暂无新闻 — 请运行 <code>npm run collect</code> 采集数据。
           </p>
         ) : (
-          topItems.map((item) => <NewsCard key={item.id} item={item} />)
+          visible.map((item) => <NewsCard key={item.id} item={item} />)
         )}
       </section>
     </div>

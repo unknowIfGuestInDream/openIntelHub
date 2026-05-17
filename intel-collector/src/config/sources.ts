@@ -304,6 +304,82 @@ export const SOURCES: MediaSource[] = [
     language: 'en',
     feeds: ['https://www.globaltimes.cn/rss/outbrain.xml'],
   },
+
+  // ── AI 行业 ────────────────────────────────────────────────────────────────
+  {
+    domain: 'techcrunch.com',
+    nameCN: 'TechCrunch（AI 频道）',
+    country: 'International',
+    flag: '🤖',
+    accessibleInChina: false,
+    language: 'en',
+    feeds: ['https://techcrunch.com/category/artificial-intelligence/feed/'],
+  },
+  {
+    domain: 'technologyreview.com',
+    nameCN: '麻省理工科技评论（AI）',
+    country: 'International',
+    flag: '🤖',
+    accessibleInChina: false,
+    language: 'en',
+    feeds: ['https://www.technologyreview.com/topic/artificial-intelligence/feed'],
+  },
+  {
+    domain: 'arstechnica.com',
+    nameCN: 'Ars Technica（AI）',
+    country: 'International',
+    flag: '🤖',
+    accessibleInChina: false,
+    language: 'en',
+    feeds: ['https://arstechnica.com/ai/feed/'],
+  },
+  {
+    domain: 'venturebeat.com',
+    nameCN: 'VentureBeat（AI）',
+    country: 'International',
+    flag: '🤖',
+    accessibleInChina: false,
+    language: 'en',
+    feeds: ['https://venturebeat.com/category/ai/feed/'],
+  },
+  {
+    domain: 'wired.com',
+    nameCN: 'Wired（AI）',
+    country: 'International',
+    flag: '🤖',
+    accessibleInChina: false,
+    language: 'en',
+    feeds: ['https://www.wired.com/feed/tag/ai/latest/rss'],
+  },
+
+  // ── GitHub 平台动态 ────────────────────────────────────────────────────────
+  {
+    domain: 'github.blog',
+    nameCN: 'GitHub 官方博客',
+    country: 'International',
+    flag: '🐙',
+    accessibleInChina: true,
+    language: 'en',
+    feeds: ['https://github.blog/feed/'],
+  },
+  {
+    domain: 'github.blog/changelog',
+    nameCN: 'GitHub Changelog',
+    country: 'International',
+    flag: '🐙',
+    accessibleInChina: true,
+    language: 'en',
+    feeds: ['https://github.blog/changelog/feed/'],
+  },
+  {
+    domain: 'github.blog/engineering',
+    nameCN: 'GitHub 工程博客',
+    country: 'International',
+    flag: '🐙',
+    accessibleInChina: true,
+    language: 'en',
+    feeds: ['https://github.blog/category/engineering/feed/'],
+  },
 ];
 
 export function getSourceByDomain(domain: string): MediaSource | undefined {

@@ -37,14 +37,14 @@ export default async function BiasPage() {
   return (
     <div className="space-y-8">
       <header>
-        <h1 className="text-3xl font-bold">Media bias & sentiment</h1>
+        <h1 className="text-3xl font-bold">媒体偏向与情感</h1>
         <p className="mt-2 text-sm text-slate-400">
-          Comparative view of narrative bias and tone across all configured outlets.
+          各信息源叙事偏向与情感倾向的对比视图。
         </p>
       </header>
 
       <section className="rounded border border-slate-800 bg-slate-900/60 p-4">
-        <h2 className="mb-2 text-lg font-semibold">Articles per outlet × narrative bias</h2>
+        <h2 className="mb-2 text-lg font-semibold">各信息源 × 叙事偏向 文章数</h2>
         <Chart
           option={{
             backgroundColor: 'transparent',
@@ -73,7 +73,7 @@ export default async function BiasPage() {
       </section>
 
       <section className="rounded border border-slate-800 bg-slate-900/60 p-4">
-        <h2 className="mb-2 text-lg font-semibold">Sentiment split per outlet</h2>
+        <h2 className="mb-2 text-lg font-semibold">各信息源情感分布</h2>
         <Chart
           option={{
             backgroundColor: 'transparent',

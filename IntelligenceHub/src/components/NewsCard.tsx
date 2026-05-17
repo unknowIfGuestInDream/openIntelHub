@@ -1,6 +1,12 @@
 import Link from 'next/link';
 import type { NewsItem } from '@/lib/types';
 
+const SENTIMENT_LABEL: Record<NewsItem['ai']['sentiment'], string> = {
+  positive: '正面',
+  neutral: '中性',
+  negative: '负面',
+};
+
 function riskColor(score: number): string {
   if (score >= 60) return 'bg-risk-high';
   if (score >= 30) return 'bg-risk-med';
@@ -15,7 +21,7 @@ export function NewsCard({ item }: { item: NewsItem }) {
           {item.source.flag} {item.source.nameCN}
         </span>
         <time dateTime={item.publishedAt}>
-          {new Date(item.publishedAt).toLocaleString()}
+          {new Date(item.publishedAt).toLocaleString('zh-CN')}
         </time>
       </div>
       <Link href={`/news/${item.id}/`} className="block">
@@ -24,13 +30,13 @@ export function NewsCard({ item }: { item: NewsItem }) {
       <p className="mt-2 line-clamp-3 text-sm text-slate-300">{item.summary}</p>
       <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
         <span className={`rounded px-2 py-0.5 text-white ${riskColor(item.ai.riskScore)}`}>
-          Risk {item.ai.riskScore}
+          风险 {item.ai.riskScore}
         </span>
         <span className="rounded bg-slate-800 px-2 py-0.5 text-slate-200">
-          Importance {item.ai.importanceScore}
+          重要性 {item.ai.importanceScore}
         </span>
         <span className="rounded bg-slate-800 px-2 py-0.5 text-slate-200">
-          {item.ai.sentiment}
+          {SENTIMENT_LABEL[item.ai.sentiment] ?? item.ai.sentiment}
         </span>
         <span className="rounded bg-slate-800 px-2 py-0.5 text-slate-200">
           {item.category}
