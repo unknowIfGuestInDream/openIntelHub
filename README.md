@@ -73,21 +73,6 @@ AI_PROVIDER=ollama npm run collect
 采集器每次运行会在 `IntelligenceHub/public/data/history/<YYYY-MM-DD>.json` 写入当日完整快照，并自动清理 30 天前的快照。
 站点提供 `/history/` 索引页与 `/history/[date]/` 日报详情页，首页默认仅展示当日新闻并附跳转入口。
 
-## GitHub Actions
-
-| Workflow | 触发 | Job |
-|----------|------|-----|
-| [`ci.yml`](.github/workflows/ci.yml) | PR / push | 安装依赖、lint、typecheck、test |
-| [`collect-and-deploy.yml`](.github/workflows/collect-and-deploy.yml) | cron（每 6 小时） + 手动触发 | collect → analyze → 构建站点 → 通过 [`easingthemes/ssh-deploy@v6.0.3`](https://github.com/easingthemes/ssh-deploy) SSH 部署 |
-
-部署所需仓库 secrets：
-
-- `SSH_PRIVATE_KEY` — 目标服务器的部署私钥
-- `REMOTE_HOST` — 服务器主机名 / IP
-- `REMOTE_USER` — SSH 用户
-- `REMOTE_TARGET` — 服务器上的绝对路径（如 `/var/www/openintelhub`）
-- `OPENAI_API_KEY` *(可选)* — 启用 LLM 分析（否则走 heuristic）
-
 ## 输出 JSON Schema
 
 ```ts
@@ -114,27 +99,6 @@ interface NewsItem {
   clusterId?: string;
 }
 ```
-
-## 协作规范
-
-- 提交信息遵循 **Angular Commit Convention**，详见 [`.github/copilot-instructions.md`](.github/copilot-instructions.md)。
-- PR 默认审核人：`@unknowIfGuestInDream`（见 [`.github/CODEOWNERS`](.github/CODEOWNERS)）。
-- 依赖通过 [`.github/dependabot.yml`](.github/dependabot.yml) 周更新。
-
-## 备案信息
-
-页面底部展示：
-
-- ICP 备案：辽ICP备2021000033号
-- 公安备案：辽公网安备21020302000532号
-
-## Roadmap
-
-- 基于 RAG 的新闻语料检索与问答
-- 全球事件时间线与传播链分析
-- 社交媒体交叉验证
-- Telegram 推送 / 邮件日报
-- 风险预警规则引擎
 
 ## License
 
