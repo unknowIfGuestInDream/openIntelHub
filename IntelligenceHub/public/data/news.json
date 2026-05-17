@@ -1,0 +1,52 @@
+{
+  "generatedAt": "2025-01-01T00:00:00.000Z",
+  "totalArticles": 2,
+  "totalSources": 2,
+  "items": [
+    {
+      "id": "sample0000000001",
+      "title": "Sample headline: Global summit concludes with new climate accord",
+      "summary": "World leaders agreed on a new framework for reducing emissions during the closing session of the summit. The accord introduces binding targets and a financing mechanism for developing economies.",
+      "url": "https://example.com/sample-1",
+      "source": { "domain": "bbc.com", "nameCN": "英国广播公司", "country": "UK", "flag": "🇬🇧" },
+      "publishedAt": "2025-01-01T00:00:00.000Z",
+      "category": "world",
+      "tags": ["climate"],
+      "entities": { "people": [], "orgs": ["UN"], "places": ["Geneva"] },
+      "ai": {
+        "importanceScore": 72,
+        "riskScore": 35,
+        "sentiment": "positive",
+        "credibility": 88,
+        "geopoliticalImpact": 55,
+        "marketImpact": 40,
+        "militaryRelevance": 5,
+        "narrativeBias": "center"
+      },
+      "language": "en"
+    },
+    {
+      "id": "sample0000000002",
+      "title": "Sample headline: Markets rally as central bank signals rate cut",
+      "summary": "Equity indexes posted strong gains after the central bank hinted at an upcoming rate cut, citing easing inflation and stable employment data.",
+      "url": "https://example.com/sample-2",
+      "source": { "domain": "investing.com", "nameCN": "英为财情", "country": "International", "flag": "🌍" },
+      "publishedAt": "2025-01-01T01:00:00.000Z",
+      "category": "business",
+      "tags": ["market", "rate cut"],
+      "entities": { "people": [], "orgs": ["Federal Reserve"], "places": [] },
+      "ai": {
+        "importanceScore": 64,
+        "riskScore": 20,
+        "sentiment": "positive",
+        "credibility": 74,
+        "geopoliticalImpact": 25,
+        "marketImpact": 80,
+        "militaryRelevance": 0,
+        "narrativeBias": "center"
+      },
+      "language": "en"
+    }
+  ],
+  "clusters": []
+}
