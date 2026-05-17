@@ -1,0 +1,60 @@
+name: Collect & Deploy
+
+on:
+  schedule:
+    # Every 6 hours
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  collect-build-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Collect & analyze news
+        env:
+          # AI provider selection. Set repo variable AI_PROVIDER to one of:
+          #   heuristic (default, no deps)
+          #   ollama    (local LLM via Ollama, needs a self-hosted runner with Ollama)
+          #   openai    (uses OPENAI_API_KEY below)
+          AI_PROVIDER: ${{ vars.AI_PROVIDER }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
+          OLLAMA_BASE_URL: ${{ vars.OLLAMA_BASE_URL }}
+          OLLAMA_MODEL: ${{ vars.OLLAMA_MODEL }}
+          NODE_ENV: production
+        run: npm run collect -w intel-collector
+
+      - name: Build static site
+        run: npm run build -w IntelligenceHub
+
+      - name: Upload collector output as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: news-json
+          path: intel-collector/output/news.json
+          retention-days: 14
+
+      - name: Publish to server
+        uses: easingthemes/ssh-deploy@v6.0.3
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          ARGS: '-avzr --delete'
+          SOURCE: 'IntelligenceHub/out/'
+          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+          REMOTE_USER: ${{ secrets.REMOTE_USER }}
+          TARGET: ${{ secrets.REMOTE_TARGET }}

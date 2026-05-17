@@ -1,0 +1,26 @@
+{
+  "name": "openintelhub",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI-powered global news intelligence platform",
+  "license": "MIT",
+  "workspaces": [
+    "intel-collector",
+    "IntelligenceHub"
+  ],
+  "scripts": {
+    "lint": "npm run lint --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "collect": "npm run collect -w intel-collector",
+    "site:build": "npm run build -w IntelligenceHub",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\""
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
