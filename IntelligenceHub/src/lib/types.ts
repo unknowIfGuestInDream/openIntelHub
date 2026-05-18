@@ -25,6 +25,8 @@ export interface NewsItem {
   id: string;
   title: string;
   summary: string;
+  titleCN?: string;
+  summaryCN?: string;
   url: string;
   source: { domain: string; nameCN: string; country: string; flag: string };
   publishedAt: string;

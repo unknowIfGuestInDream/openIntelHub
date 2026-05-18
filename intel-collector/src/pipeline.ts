@@ -7,6 +7,7 @@ import { articleId, normalizeUrl } from './utils/hash.js';
 import { makeSummary } from './extract/article.js';
 import { clusterByTitle, dedupe } from './dedupe.js';
 import { analyze } from './analyze/ai.js';
+import { translateToChinese } from './analyze/translate.js';
 import { defaultCategory, defaultTags, extractEntitiesFor } from './analyze/heuristic.js';
 
 export interface PipelineOptions {
@@ -75,12 +76,17 @@ async function buildNewsItem(a: RawArticle): Promise<NewsItem> {
   const url = normalizeUrl(a.url);
   const id = articleId(url);
   const summary = makeSummary(a.description ?? a.content ?? a.title);
-  const ai = await analyze({ title: a.title, summary, domain: a.source.domain });
+  // Analysis and translation are independent network calls; run in parallel.
+  const [ai, translation] = await Promise.all([
+    analyze({ title: a.title, summary, domain: a.source.domain }),
+    translateToChinese({ title: a.title, summary, sourceLang: a.source.language }),
+  ]);
 
   return {
     id,
     title: a.title,
     summary,
+    ...(translation ? { titleCN: translation.titleCN, summaryCN: translation.summaryCN } : {}),
     url,
     source: {
       domain: a.source.domain,
@@ -108,6 +114,6 @@ function summarizeClusters(items: NewsItem[]): CollectionResult['clusters'] {
   return [...map.entries()].map(([id, arr]) => ({
     id,
     size: arr.length,
-    titles: arr.slice(0, 5).map((i) => i.title),
+    titles: arr.slice(0, 5).map((i) => i.titleCN ?? i.title),
   }));
 }

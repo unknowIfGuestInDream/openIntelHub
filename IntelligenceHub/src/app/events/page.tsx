@@ -53,5 +53,5 @@ export default async function EventsPage() {
 }
 
 function itemSummary(i: import('@/lib/types').NewsItem) {
-  return { id: i.id, title: i.title, domain: i.source.domain, flag: i.source.flag };
+  return { id: i.id, title: i.titleCN ?? i.title, domain: i.source.domain, flag: i.source.flag };
 }

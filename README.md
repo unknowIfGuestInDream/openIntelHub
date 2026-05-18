@@ -68,6 +68,28 @@ AI_PROVIDER=ollama npm run collect
 
 任何 LLM 调用失败（超时、解析错误、非 200 响应）都会自动回退到 heuristic 分析器，整个流水线不会中断。
 
+### 中文翻译（标题与简介）
+
+外文新闻的 `title` / `summary` 可以在采集阶段顺手翻译成简体中文，写入
+`titleCN` / `summaryCN` 字段，站点会优先展示中文，原文以小字呈现。
+通过 `TRANSLATE_PROVIDER` 环境变量选择翻译提供方：
+
+| `TRANSLATE_PROVIDER` | 说明 | 必填环境变量 |
+|---|---|---|
+| `none` *(默认)* | 不翻译，站点回退到展示原文 | — |
+| `ollama` | 通过本地 **Ollama** 调用免费开源模型（推荐离线方案） | `OLLAMA_BASE_URL`、`OLLAMA_MODEL`，可选 `TRANSLATE_MODEL` 单独覆盖 |
+| `openai` | 任何 OpenAI 兼容接口（含 DeepSeek、SiliconFlow、本地 vLLM 等） | `OPENAI_API_KEY`，可选 `OPENAI_BASE_URL` / `OPENAI_MODEL` / `TRANSLATE_MODEL` |
+
+未显式设置 `TRANSLATE_PROVIDER` 时，会自动跟随 `AI_PROVIDER`，因此开启
+`AI_PROVIDER=ollama` 即可同时启用分析与翻译，无需重复配置。源语言为
+`zh` 的内容会跳过翻译；任何调用失败都会回退到保留原文，不会中断流水线。
+
+```bash
+# 完全免费、离线的本地方案
+ollama pull qwen2.5:7b
+AI_PROVIDER=ollama OLLAMA_MODEL=qwen2.5:7b npm run collect
+```
+
 ## 历史日报
 
 采集器每次运行会在 `IntelligenceHub/public/data/history/<YYYY-MM-DD>.json` 写入当日完整快照，并自动清理 30 天前的快照。
@@ -80,6 +102,8 @@ interface NewsItem {
   id: string;            // sha1(url)
   title: string;
   summary: string;
+  titleCN?: string;      // 当 TRANSLATE_PROVIDER 启用且源语言非中文时填充
+  summaryCN?: string;    // 同上
   url: string;
   source: { domain: string; nameCN: string; country: string; flag: string };
   publishedAt: string;   // ISO-8601

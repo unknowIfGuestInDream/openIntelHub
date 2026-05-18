@@ -47,8 +47,18 @@ export default async function NewsDetailPage({ params }: PageProps) {
           {item.source.flag} {item.source.nameCN} · {item.source.country} ·{' '}
           {new Date(item.publishedAt).toLocaleString('zh-CN')}
         </div>
-        <h1 className="text-3xl font-bold text-slate-100">{item.title}</h1>
-        <p className="text-slate-300">{item.summary}</p>
+        <h1 className="text-3xl font-bold text-slate-100">{item.titleCN ?? item.title}</h1>
+        {item.titleCN && (
+          <p className="text-sm text-slate-500" lang={item.language}>
+            原文标题：{item.title}
+          </p>
+        )}
+        <p className="text-slate-300">{item.summaryCN ?? item.summary}</p>
+        {item.summaryCN && (
+          <p className="text-xs text-slate-500" lang={item.language}>
+            {item.summary}
+          </p>
+        )}
         <a
           href={item.url}
           target="_blank"
@@ -96,7 +106,7 @@ export default async function NewsDetailPage({ params }: PageProps) {
             {cluster.map((i) => (
               <li key={i.id}>
                 <Link href={`/news/${i.id}/`} className="text-brand-500 hover:underline">
-                  {i.source.flag} {i.title}
+                  {i.source.flag} {i.titleCN ?? i.title}
                 </Link>
               </li>
             ))}

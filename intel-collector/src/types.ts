@@ -62,6 +62,12 @@ export interface NewsItem {
   id: string;
   title: string;
   summary: string;
+  /** Simplified-Chinese translation of `title`, present when the source is
+   * non-Chinese and a translation provider is configured. */
+  titleCN?: string;
+  /** Simplified-Chinese translation of `summary`, present under the same
+   * conditions as `titleCN`. */
+  summaryCN?: string;
   url: string;
   source: Pick<MediaSource, 'domain' | 'nameCN' | 'country' | 'flag'>;
   publishedAt: string;
