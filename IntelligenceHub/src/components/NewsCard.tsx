@@ -25,9 +25,18 @@ export function NewsCard({ item }: { item: NewsItem }) {
         </time>
       </div>
       <Link href={`/news/${item.id}/`} className="block">
-        <h3 className="text-lg font-semibold text-slate-100 hover:text-brand-500">{item.title}</h3>
+        <h3 className="text-lg font-semibold text-slate-100 hover:text-brand-500">
+          {item.titleCN ?? item.title}
+        </h3>
+        {item.titleCN && (
+          <p className="mt-0.5 text-xs text-slate-500" lang={item.language}>
+            {item.title}
+          </p>
+        )}
       </Link>
-      <p className="mt-2 line-clamp-3 text-sm text-slate-300">{item.summary}</p>
+      <p className="mt-2 line-clamp-3 text-sm text-slate-300">
+        {item.summaryCN ?? item.summary}
+      </p>
       <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
         <span className={`rounded px-2 py-0.5 text-white ${riskColor(item.ai.riskScore)}`}>
           风险 {item.ai.riskScore}
