@@ -68,17 +68,59 @@ jobs:
             "${REMOTE_USER}@${REMOTE_HOST}:${target}/data/history/" \
             IntelligenceHub/public/data/history/ || true
 
+      # When the repo variable AI_PROVIDER=ollama is set, install and run
+      # Ollama directly on the GitHub-hosted runner so the collector talks
+      # to a *local* LLM at http://127.0.0.1:11434 instead of any remote API
+      # — no API key, no third-party network call. Skipped entirely for the
+      # default `heuristic` / `openai` providers, so existing runs are
+      # unaffected.
+      - name: Setup local Ollama
+        # Only when the user wants Ollama AND has not pointed OLLAMA_BASE_URL
+        # at a pre-existing remote / self-hosted instance.
+        if: ${{ vars.AI_PROVIDER == 'ollama' && vars.OLLAMA_BASE_URL == '' }}
+        env:
+          # Default to a small, CPU-friendly model so the standard
+          # GitHub-hosted runner can complete `ollama pull` and inference
+          # within the job timeout. Override via repo variable OLLAMA_MODEL.
+          OLLAMA_MODEL: ${{ vars.OLLAMA_MODEL || 'llama3.2:1b' }}
+        run: |
+          set -euo pipefail
+          curl -fsSL https://ollama.com/install.sh | sh
+          # Run the server detached; the job will be torn down when finished.
+          nohup ollama serve > /tmp/ollama.log 2>&1 &
+          # Wait up to ~60s for the HTTP endpoint to be ready.
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:11434/api/tags >/dev/null 2>&1; then
+              echo "ollama is up after ${i} attempts"
+              break
+            fi
+            sleep 2
+          done
+          if ! curl -fsS http://127.0.0.1:11434/api/tags >/dev/null 2>&1; then
+            echo "ollama failed to start; recent log:" >&2
+            tail -n 50 /tmp/ollama.log >&2 || true
+            exit 1
+          fi
+          ollama pull "$OLLAMA_MODEL"
+
       - name: Collect & analyze news
         env:
           # AI provider selection. Set repo variable AI_PROVIDER to one of:
-          #   heuristic (default, no deps)
-          #   ollama    (local LLM via Ollama, needs a self-hosted runner with Ollama)
+          #   heuristic (default, no deps, no network)
+          #   ollama    (local LLM — automatically installed by the
+          #              "Setup local Ollama" step above on this runner)
           #   openai    (uses OPENAI_API_KEY below)
           AI_PROVIDER: ${{ vars.AI_PROVIDER }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
+          # When OLLAMA_BASE_URL is unset the collector falls back to
+          # http://127.0.0.1:11434/v1, which matches the in-runner daemon.
           OLLAMA_BASE_URL: ${{ vars.OLLAMA_BASE_URL }}
-          OLLAMA_MODEL: ${{ vars.OLLAMA_MODEL }}
+          # Mirror the small default used by the setup step so the model
+          # actually pulled above is the one the collector requests. When
+          # OLLAMA_BASE_URL is set (remote/self-hosted Ollama), respect the
+          # user's own OLLAMA_MODEL choice and don't inject a default.
+          OLLAMA_MODEL: ${{ vars.OLLAMA_MODEL || (vars.AI_PROVIDER == 'ollama' && vars.OLLAMA_BASE_URL == '' && 'llama3.2:1b') || '' }}
           NODE_ENV: production
         run: npm run collect -w intel-collector
 
