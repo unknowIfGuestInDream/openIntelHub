@@ -90,7 +90,8 @@ AI_PROVIDER=ollama npm run collect
 
 未显式设置 `TRANSLATE_PROVIDER` 时，会自动跟随 `AI_PROVIDER`，因此开启
 `AI_PROVIDER=ollama` 即可同时启用分析与翻译，无需重复配置。源语言为
-`zh` 的内容会跳过翻译；任何调用失败都会回退到保留原文，不会中断流水线。
+`zh` 的内容会跳过翻译；`COLLECT_MAX_LLM_ITEMS` 只限制 AI 分析数量，不会跳过
+外文标题和简介翻译。任何调用失败都会回退到保留原文，不会中断流水线。
 
 ```bash
 # 完全免费、离线的本地方案

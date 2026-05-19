@@ -22,7 +22,7 @@ export interface PipelineOptions {
   fetchConcurrency?: number;
   /** Concurrency for AI analysis. */
   analyzeConcurrency?: number;
-  /** Maximum number of articles allowed to call an external LLM. */
+  /** Maximum number of articles allowed to call an external LLM for analysis. */
   maxLlmItems?: number;
 }
 
@@ -110,18 +110,21 @@ function shouldUseLlm(article: RawArticle, llmItemIds: Set<string> | null): bool
   return llmItemIds === null || llmItemIds.has(articleId(normalizeUrl(article.url)));
 }
 
-async function buildNewsItem(a: RawArticle, useLlm: boolean): Promise<NewsItem> {
+export async function buildNewsItem(a: RawArticle, useLlm: boolean): Promise<NewsItem> {
   const url = normalizeUrl(a.url);
   const id = articleId(url);
   const summary = makeSummary(a.description ?? a.content ?? a.title);
   const analyzeInput = { title: a.title, summary, domain: a.source.domain };
   // A null translation means the item keeps its original title/summary.
-  const [ai, translation] = useLlm
-    ? await Promise.all([
-        analyze(analyzeInput),
-        translateToChinese({ title: a.title, summary, sourceLang: a.source.language }),
-      ])
-    : [heuristicAnalyze(analyzeInput), null];
+  const translationPromise = translateToChinese({
+    title: a.title,
+    summary,
+    sourceLang: a.source.language,
+  });
+  const [ai, translation] = await Promise.all([
+    useLlm ? analyze(analyzeInput) : Promise.resolve(heuristicAnalyze(analyzeInput)),
+    translationPromise,
+  ]);
 
   return {
     id,
