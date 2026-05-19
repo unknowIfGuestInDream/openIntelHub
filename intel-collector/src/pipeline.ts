@@ -91,9 +91,16 @@ export function selectLlmItemIds(
   if (maxLlmItems <= 0) return new Set();
   return new Set(
     [...articles]
-      .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
+      .map((article) => {
+        const publishedMs = Date.parse(article.publishedAt);
+        return {
+          article,
+          publishedMs: Number.isFinite(publishedMs) ? publishedMs : 0,
+        };
+      })
+      .sort((a, b) => b.publishedMs - a.publishedMs)
       .slice(0, maxLlmItems)
-      .map((a) => articleId(normalizeUrl(a.url))),
+      .map(({ article }) => articleId(normalizeUrl(article.url))),
   );
 }
 

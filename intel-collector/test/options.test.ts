@@ -5,6 +5,16 @@ import { selectLlmItemIds } from '../src/pipeline.ts';
 import { articleId, normalizeUrl } from '../src/utils/hash.ts';
 import type { MediaSource, RawArticle } from '../src/types.ts';
 
+const TEST_SOURCE: MediaSource = {
+  domain: 'example.com',
+  nameCN: '示例',
+  country: 'Example',
+  flag: '🌐',
+  accessibleInChina: true,
+  language: 'en',
+  feeds: ['https://example.com/rss.xml'],
+};
+
 test('pipelineOptionsFromEnv ignores unset and blank values', () => {
   assert.deepEqual(
     pipelineOptionsFromEnv({
@@ -45,19 +55,10 @@ test('pipelineOptionsFromEnv rejects invalid numeric limits', () => {
 });
 
 test('selectLlmItemIds picks the newest articles within the LLM item budget', () => {
-  const source: MediaSource = {
-    domain: 'example.com',
-    nameCN: '示例',
-    country: 'Example',
-    flag: '🌐',
-    accessibleInChina: true,
-    language: 'en',
-    feeds: ['https://example.com/rss.xml'],
-  };
   const articles: RawArticle[] = [
-    article(source, 'old', 'https://example.com/old', '2025-01-01T00:00:00.000Z'),
-    article(source, 'new', 'https://example.com/new', '2025-01-03T00:00:00.000Z'),
-    article(source, 'mid', 'https://example.com/mid', '2025-01-02T00:00:00.000Z'),
+    article('old', 'https://example.com/old', '2025-01-01T00:00:00.000Z'),
+    article('new', 'https://example.com/new', '2025-01-03T00:00:00.000Z'),
+    article('mid', 'https://example.com/mid', '2025-01-02T00:00:00.000Z'),
   ];
 
   const selected = selectLlmItemIds(articles, 2);
@@ -67,14 +68,9 @@ test('selectLlmItemIds picks the newest articles within the LLM item budget', ()
   assert.equal(selectLlmItemIds(articles), null);
 });
 
-function article(
-  source: MediaSource,
-  title: string,
-  url: string,
-  publishedAt: string,
-): RawArticle {
+function article(title: string, url: string, publishedAt: string): RawArticle {
   return {
-    source,
+    source: TEST_SOURCE,
     title,
     url,
     publishedAt,

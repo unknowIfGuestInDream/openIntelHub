@@ -18,6 +18,7 @@ function intOption<K extends keyof PipelineOptions>(
   const raw = env[envName]?.trim();
   if (!raw) return {};
   const value = Number(raw);
+  // Invalid overrides are ignored so the pipeline's safe defaults remain active.
   if (!Number.isInteger(value) || value < min) return {};
   return { [optionName]: value } as Pick<PipelineOptions, K>;
 }
