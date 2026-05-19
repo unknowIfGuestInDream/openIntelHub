@@ -126,7 +126,8 @@ jobs:
           # deterministic heuristics so the workflow cannot burn the full job
           # timeout when inference is slow. Repo variables can override both.
           # For non-Ollama providers these resolve to blank strings, which the
-          # collector ignores and replaces with its normal defaults.
+          # collector ignores and replaces with its normal defaults
+          # (analyzeConcurrency=4 and no LLM item limit).
           COLLECT_ANALYZE_CONCURRENCY: ${{ vars.COLLECT_ANALYZE_CONCURRENCY || (vars.AI_PROVIDER == 'ollama' && '1') || '' }}
           COLLECT_MAX_LLM_ITEMS: ${{ vars.COLLECT_MAX_LLM_ITEMS || (vars.AI_PROVIDER == 'ollama' && '10') || '' }}
           NODE_ENV: production

@@ -113,6 +113,7 @@ async function buildNewsItem(a: RawArticle, useLlm: boolean): Promise<NewsItem> 
   const id = articleId(url);
   const summary = makeSummary(a.description ?? a.content ?? a.title);
   const analyzeInput = { title: a.title, summary, domain: a.source.domain };
+  // A null translation means the item keeps its original title/summary.
   const [ai, translation] = useLlm
     ? await Promise.all([
         analyze(analyzeInput),
