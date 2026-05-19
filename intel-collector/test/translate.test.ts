@@ -124,3 +124,40 @@ test('translateToChinese returns null when provider is none', async () => {
     },
   );
 });
+
+test('translateToChinese uses Ollama defaults when workflow env vars are blank', async () => {
+  const originalFetch = globalThis.fetch;
+  let capturedUrl = '';
+  let capturedModel = '';
+  globalThis.fetch = (async (input, init) => {
+    capturedUrl = String(input);
+    const body = JSON.parse(String(init?.body)) as { model?: string };
+    capturedModel = body.model ?? '';
+    return new Response(
+      JSON.stringify({
+        choices: [{ message: { content: '{"titleCN":"你好","summaryCN":"世界"}' } }],
+      }),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    );
+  }) as typeof fetch;
+  try {
+    await withEnv(
+      {
+        TRANSLATE_PROVIDER: 'ollama',
+        AI_PROVIDER: undefined,
+        OLLAMA_BASE_URL: '',
+        OLLAMA_MODEL: '',
+        TRANSLATE_MODEL: '',
+        OPENAI_API_KEY: undefined,
+      },
+      async () => {
+        const r = await translateToChinese({ title: 'Hello', summary: 'World', sourceLang: 'en' });
+        assert.deepEqual(r, { titleCN: '你好', summaryCN: '世界' });
+      },
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+  assert.equal(capturedUrl, 'http://127.0.0.1:11434/v1/chat/completions');
+  assert.equal(capturedModel, 'llama3.1');
+});

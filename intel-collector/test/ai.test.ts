@@ -1,22 +1,40 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { resolveProvider, extractJson } from '../src/analyze/ai.ts';
+import { resolveProvider, extractJson, analyze } from '../src/analyze/ai.ts';
 
-function withEnv(env: Record<string, string | undefined>, fn: () => void): void {
+function withEnv(env: Record<string, string | undefined>, fn: () => void | Promise<void>): void | Promise<void> {
   const orig: Record<string, string | undefined> = {};
   for (const k of Object.keys(env)) {
     orig[k] = process.env[k];
     if (env[k] === undefined) delete process.env[k];
     else process.env[k] = env[k];
   }
-  try {
-    fn();
-  } finally {
+  const restore = () => {
     for (const k of Object.keys(orig)) {
       if (orig[k] === undefined) delete process.env[k];
       else process.env[k] = orig[k];
     }
+  };
+  let result: void | Promise<void>;
+  try {
+    result = fn();
+  } catch (err) {
+    restore();
+    throw err;
   }
+  if (result && typeof (result as Promise<void>).then === 'function') {
+    return (result as Promise<void>).then(
+      (v) => {
+        restore();
+        return v;
+      },
+      (err) => {
+        restore();
+        throw err;
+      },
+    );
+  }
+  restore();
 }
 
 test('resolveProvider defaults to heuristic with no env', () => {
@@ -62,4 +80,35 @@ test('extractJson recovers from trailing garbage that contains stray braces', ()
 
 test('extractJson returns empty object when no JSON present', () => {
   assert.deepEqual(extractJson('the model refused to reply'), {});
+});
+
+test('analyze uses Ollama defaults when workflow env vars are blank', async () => {
+  const originalFetch = globalThis.fetch;
+  let capturedUrl = '';
+  let capturedModel = '';
+  globalThis.fetch = (async (input, init) => {
+    capturedUrl = String(input);
+    const body = JSON.parse(String(init?.body)) as { model?: string };
+    capturedModel = body.model ?? '';
+    return new Response(
+      JSON.stringify({
+        choices: [{ message: { content: '{"importanceScore":77,"riskScore":42}' } }],
+      }),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    );
+  }) as typeof fetch;
+  try {
+    await withEnv(
+      { AI_PROVIDER: 'ollama', OLLAMA_BASE_URL: '', OLLAMA_MODEL: '', OPENAI_API_KEY: undefined },
+      async () => {
+        const r = await analyze({ title: 'Hello', summary: 'World', domain: 'example.com' });
+        assert.equal(r.importanceScore, 77);
+        assert.equal(r.riskScore, 42);
+      },
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+  assert.equal(capturedUrl, 'http://127.0.0.1:11434/v1/chat/completions');
+  assert.equal(capturedModel, 'llama3.1');
 });
