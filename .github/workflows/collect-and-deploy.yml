@@ -57,7 +57,8 @@ jobs:
           # Pin the server's host key from this run into known_hosts; combined
           # with StrictHostKeyChecking=yes this prevents silent acceptance of
           # a swapped key on subsequent ssh calls within this step.
-          ssh-keyscan -p "$port" -H "$REMOTE_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
+          ssh-keyscan -p "$port" -H "$REMOTE_HOST" >> ~/.ssh/known_hosts 2>/dev/null \
+            || echo "warning: ssh-keyscan failed for ${REMOTE_HOST}:${port}; relying on existing known_hosts"
           target="${REMOTE_TARGET%/}"
           # Trailing slash on source so contents (not the dir itself) are copied.
           # `|| true` keeps the workflow green when the remote dir is empty/missing
