@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { loadNews } from '@/lib/data';
+import { findItemById, listAllItemIds } from '@/lib/data';
 import type { NarrativeBias, Sentiment } from '@/lib/types';
 
 const SENTIMENT_LABEL: Record<Sentiment, string> = {
@@ -19,8 +19,12 @@ const BIAS_LABEL: Record<NarrativeBias, string> = {
 };
 
 export async function generateStaticParams() {
-  const data = await loadNews();
-  return data.items.map((i) => ({ id: i.id }));
+  // Include every article id from the current snapshot *and* every historical
+  // snapshot. Older articles are still linked from `/history/<date>/` and
+  // `/events/`, so their detail pages must remain reachable even after they
+  // rotate out of the latest `news.json`.
+  const ids = await listAllItemIds();
+  return ids.map((id) => ({ id }));
 }
 
 interface PageProps {
@@ -29,12 +33,14 @@ interface PageProps {
 
 export default async function NewsDetailPage({ params }: PageProps) {
   const { id } = await params;
-  const data = await loadNews();
-  const item = data.items.find((i) => i.id === id);
-  if (!item) notFound();
+  const found = await findItemById(id);
+  if (!found) notFound();
+  const { item, snapshot } = found;
 
+  // Related articles are taken from the same snapshot the item was found in
+  // so the cluster reflects what was actually published together.
   const cluster = item.clusterId
-    ? data.items.filter((i) => i.clusterId === item.clusterId && i.id !== item.id)
+    ? snapshot.items.filter((i) => i.clusterId === item.clusterId && i.id !== item.id)
     : [];
 
   return (
