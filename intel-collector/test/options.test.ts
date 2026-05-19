@@ -64,6 +64,10 @@ test('selectLlmItemIds picks the newest articles within the LLM item budget', ()
   const selected = selectLlmItemIds(articles, 2);
 
   assert.deepEqual(selected, idSet(['https://example.com/new', 'https://example.com/mid']));
+  assert.deepEqual(
+    selectLlmItemIds(articles, 10),
+    idSet(['https://example.com/old', 'https://example.com/new', 'https://example.com/mid']),
+  );
   assert.deepEqual(selectLlmItemIds(articles, 0), new Set());
   assert.equal(selectLlmItemIds(articles), null);
 });

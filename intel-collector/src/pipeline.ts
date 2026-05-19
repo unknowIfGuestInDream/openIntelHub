@@ -93,6 +93,8 @@ export function selectLlmItemIds(
     [...articles]
       .map((article) => {
         const publishedMs = Date.parse(article.publishedAt);
+        // Invalid dates share the epoch fallback used for undated RSS items,
+        // keeping them behind dated articles when spending the LLM budget.
         return {
           article,
           publishedMs: Number.isFinite(publishedMs) ? publishedMs : 0,
