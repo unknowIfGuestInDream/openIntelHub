@@ -95,6 +95,31 @@ AI_PROVIDER=ollama OLLAMA_MODEL=qwen2.5:7b npm run collect
 采集器每次运行会在 `IntelligenceHub/public/data/history/<YYYY-MM-DD>.json` 写入当日完整快照，并自动清理 30 天前的快照。
 站点提供 `/history/` 索引页与 `/history/[date]/` 日报详情页，首页默认仅展示当日新闻并附跳转入口。
 
+## 服务器部署配置
+
+`IntelligenceHub` 使用 Next.js 静态导出（`output: 'export'` + `trailingSlash: true`），
+每个路由会落到 `<route>/index.html`（如 `out/history/index.html`、`out/news/<id>/index.html`）。
+浏览器请求 `/history/`、`/events/`、`/risk/`、`/bias/`、`/news/<id>/` 等链接时，
+**Web 服务器必须能自动把目录请求回退到目录内的 `index.html`**，否则会全部返回 404。Next.js 16 的 `<Link>` 客户端导航还会去拉同目录下的
+`index.txt` 作为 RSC 负载，因此 `.txt` 也要正常返回。
+
+Nginx 推荐配置见 [`IntelligenceHub/deploy/nginx.conf.example`](./IntelligenceHub/deploy/nginx.conf.example)，
+核心是：
+
+```nginx
+root /var/www/openintelhub;   # 与 collect-and-deploy.yml 中 REMOTE_TARGET 对应
+index index.html;
+
+location / {
+    # 1. 直接命中文件（含 /history/index.html、/history/index.txt、/_next/static/…）
+    # 2. 目录请求由 `index` 指令回退到 <dir>/index.html
+    # 3. 兼容偶发的无斜杠链接
+    try_files $uri $uri/ $uri.html =404;
+}
+```
+
+只要包含 `try_files $uri $uri/ ...` + `index index.html;`，所有导航与新闻详情链接均可正常访问。
+
 ## 输出 JSON Schema
 
 ```ts

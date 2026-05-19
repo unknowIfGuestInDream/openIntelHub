@@ -1,0 +1,56 @@
+# OpenIntelHub IntelligenceHub —— Nginx 部署示例配置
+#
+# 把 IntelligenceHub/out/ 通过 GitHub Actions（参见 .github/workflows/collect-and-deploy.yml）
+# rsync 同步到下面 root 指定的目录后，将此文件的关键指令合入你的 nginx server 块。
+#
+# 关键点（直接对应 issue #40 "链接访问失败"）：
+#   1. 静态导出（Next.js `output: 'export'` + `trailingSlash: true`）会把每个路由
+#      落到 `<route>/index.html`，例如 `out/history/index.html`、`out/news/<id>/index.html`。
+#      浏览器请求 `/history/` 时，必须靠 nginx 的 `try_files $uri $uri/ ...` + `index index.html;`
+#      才能把目录请求回退到 `index.html`，否则就是用户看到的 404。
+#   2. Next.js 16 的 `<Link>` 客户端导航会再去拉同目录下的 `index.txt`（RSC 负载），
+#      因此 `try_files` 同样要覆盖普通文件路径，且默认 MIME 表里 `.txt` 必须是 `text/plain`。
+#   3. `_next/static/` 与 `data/` 资源都是带哈希或定期重建的，可放心长缓存。
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name news.example.com;          # 改成你的域名
+
+    # rsync 目标目录（与 secrets.REMOTE_TARGET 对应），指向 IntelligenceHub/out/ 同步过去的位置
+    root /var/www/openintelhub;
+    index index.html;
+
+    # 关闭目录浏览，避免索引被直接列出
+    autoindex off;
+
+    # —— 核心：静态导出的目录回退规则 ——
+    # 1. 优先把 URI 当文件返回（包括 /history/index.html、/history/index.txt、/_next/static/... 等）
+    # 2. 否则把 URI 当目录，并由 `index index.html;` 指令命中 <dir>/index.html
+    # 3. 都不命中再尝试同名 .html（兼容偶发的无斜杠链接）
+    # 4. 仍未命中返回 404，由下方 `error_page` 渲染 Next.js 导出的 404 页面
+    location / {
+        try_files $uri $uri/ $uri.html =404;
+    }
+
+    # Next.js 的构建产物全部带内容哈希，可长期缓存
+    location /_next/static/ {
+        access_log off;
+        expires 1y;
+        add_header Cache-Control "public, max-age=31536000, immutable";
+        try_files $uri =404;
+    }
+
+    # 采集器输出的 JSON 数据每次部署都会被覆盖，给个较短缓存即可
+    location /data/ {
+        expires 5m;
+        add_header Cache-Control "public, max-age=300";
+        try_files $uri =404;
+    }
+
+    # Next.js 导出的 404 页面
+    error_page 404 /404.html;
+    location = /404.html {
+        internal;
+    }
+}
