@@ -24,6 +24,13 @@ export interface PipelineOptions {
   analyzeConcurrency?: number;
   /** Maximum number of articles allowed to call an external LLM for analysis. */
   maxLlmItems?: number;
+  /**
+   * Maximum number of articles allowed to call an external LLM for
+   * translation. Items beyond the budget keep their original title/summary
+   * (no `titleCN` / `summaryCN`). Selection mirrors `maxLlmItems`: newest
+   * articles win. Leave undefined for no cap.
+   */
+  maxTranslateItems?: number;
 }
 
 export async function runPipeline(opts: PipelineOptions = {}): Promise<CollectionResult> {
@@ -31,8 +38,12 @@ export async function runPipeline(opts: PipelineOptions = {}): Promise<Collectio
   const analyzeConc = opts.analyzeConcurrency ?? 4;
   const maxPerSource = opts.maxPerSource ?? 25;
   const maxLlmItems = opts.maxLlmItems;
+  const maxTranslateItems = opts.maxTranslateItems;
 
-  logger.info({ sources: SOURCES.length, fetchConc, analyzeConc, maxLlmItems }, 'starting collection');
+  logger.info(
+    { sources: SOURCES.length, fetchConc, analyzeConc, maxLlmItems, maxTranslateItems },
+    'starting collection',
+  );
 
   // 1. Fetch in parallel with rate limiting.
   const fetchLimit = pLimit(fetchConc);
@@ -52,12 +63,15 @@ export async function runPipeline(opts: PipelineOptions = {}): Promise<Collectio
   const deduped = dedupe(raw);
   logger.info({ before: raw.length, after: deduped.length }, 'deduped');
   const llmItemIds = selectLlmItemIds(deduped, maxLlmItems);
+  const translateItemIds = selectLlmItemIds(deduped, maxTranslateItems);
 
   // 3. Analyze in parallel.
   const analyzeLimit = pLimit(analyzeConc);
   const items: NewsItem[] = await Promise.all(
     deduped.map((a) =>
-      analyzeLimit(() => buildNewsItem(a, shouldUseLlm(a, llmItemIds))),
+      analyzeLimit(() =>
+        buildNewsItem(a, shouldUseLlm(a, llmItemIds), shouldUseLlm(a, translateItemIds)),
+      ),
     ),
   );
 
@@ -110,17 +124,27 @@ function shouldUseLlm(article: RawArticle, llmItemIds: Set<string> | null): bool
   return llmItemIds === null || llmItemIds.has(articleId(normalizeUrl(article.url)));
 }
 
-export async function buildNewsItem(a: RawArticle, useLlm: boolean): Promise<NewsItem> {
+export async function buildNewsItem(
+  a: RawArticle,
+  useLlm: boolean,
+  useTranslation: boolean = true,
+): Promise<NewsItem> {
   const url = normalizeUrl(a.url);
   const id = articleId(url);
   const summary = makeSummary(a.description ?? a.content ?? a.title);
   const analyzeInput = { title: a.title, summary, domain: a.source.domain };
   // A null translation means the item keeps its original title/summary.
-  const translationPromise = translateToChinese({
-    title: a.title,
-    summary,
-    sourceLang: a.source.language,
-  });
+  // When `useTranslation` is false we deliberately skip the LLM call so the
+  // pipeline can stay within its time budget on slow / local providers
+  // (e.g. Ollama on CPU runners). Newer items win the budget via
+  // `selectLlmItemIds`, mirroring how analysis is rationed.
+  const translationPromise = useTranslation
+    ? translateToChinese({
+        title: a.title,
+        summary,
+        sourceLang: a.source.language,
+      })
+    : Promise.resolve(null);
   const [ai, translation] = await Promise.all([
     useLlm ? analyze(analyzeInput) : Promise.resolve(heuristicAnalyze(analyzeInput)),
     translationPromise,

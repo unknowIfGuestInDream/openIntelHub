@@ -122,14 +122,20 @@ jobs:
           # user's own OLLAMA_MODEL choice and don't inject a default.
           OLLAMA_MODEL: ${{ vars.OLLAMA_MODEL || (vars.AI_PROVIDER == 'ollama' && vars.OLLAMA_BASE_URL == '' && 'llama3.2:1b') || '' }}
           # Local Ollama on GitHub-hosted CPU runners is intentionally
-          # conservative: analyze a small LLM sample and score the rest with
-          # deterministic heuristics so the workflow cannot burn the full job
-          # timeout when inference is slow. Repo variables can override both.
-          # For non-Ollama providers these resolve to blank strings, which the
-          # collector ignores and replaces with its normal defaults
-          # (analyzeConcurrency=4 and no LLM item limit).
+          # conservative: cap how much LLM time is spent so the workflow
+          # cannot burn the full job timeout when inference is slow. The
+          # user's priority is Chinese translation, so by default we route
+          # the entire LLM budget to translation (`COLLECT_MAX_TRANSLATE_ITEMS`)
+          # and let analysis fall back to deterministic heuristics
+          # (`COLLECT_MAX_LLM_ITEMS=0`). We also shrink the per-source cap
+          # so the total non-Chinese article volume stays small. Repo
+          # variables can override every knob. For non-Ollama providers
+          # these resolve to blank strings, which the collector ignores and
+          # replaces with its normal defaults.
+          COLLECT_MAX_PER_SOURCE: ${{ vars.COLLECT_MAX_PER_SOURCE || (vars.AI_PROVIDER == 'ollama' && '10') || '' }}
           COLLECT_ANALYZE_CONCURRENCY: ${{ vars.COLLECT_ANALYZE_CONCURRENCY || (vars.AI_PROVIDER == 'ollama' && '1') || '' }}
-          COLLECT_MAX_LLM_ITEMS: ${{ vars.COLLECT_MAX_LLM_ITEMS || (vars.AI_PROVIDER == 'ollama' && '10') || '' }}
+          COLLECT_MAX_LLM_ITEMS: ${{ vars.COLLECT_MAX_LLM_ITEMS || (vars.AI_PROVIDER == 'ollama' && '0') || '' }}
+          COLLECT_MAX_TRANSLATE_ITEMS: ${{ vars.COLLECT_MAX_TRANSLATE_ITEMS || (vars.AI_PROVIDER == 'ollama' && '20') || '' }}
           NODE_ENV: production
         run: npm run collect -w intel-collector
 

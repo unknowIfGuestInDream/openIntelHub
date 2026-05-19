@@ -32,12 +32,14 @@ test('pipelineOptionsFromEnv parses valid numeric limits', () => {
       COLLECT_FETCH_CONCURRENCY: '2',
       COLLECT_ANALYZE_CONCURRENCY: '1',
       COLLECT_MAX_LLM_ITEMS: '0',
+      COLLECT_MAX_TRANSLATE_ITEMS: '20',
     }),
     {
       maxPerSource: 5,
       fetchConcurrency: 2,
       analyzeConcurrency: 1,
       maxLlmItems: 0,
+      maxTranslateItems: 20,
     },
   );
 });
@@ -49,6 +51,7 @@ test('pipelineOptionsFromEnv rejects invalid numeric limits', () => {
       COLLECT_FETCH_CONCURRENCY: '-1',
       COLLECT_ANALYZE_CONCURRENCY: '1.5',
       COLLECT_MAX_LLM_ITEMS: '-1',
+      COLLECT_MAX_TRANSLATE_ITEMS: '-1',
     }),
     {},
   );
