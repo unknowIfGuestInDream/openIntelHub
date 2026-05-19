@@ -6,6 +6,7 @@ export function pipelineOptionsFromEnv(env: NodeJS.ProcessEnv = process.env): Pi
     ...intOption(env, 'COLLECT_FETCH_CONCURRENCY', 'fetchConcurrency', 1),
     ...intOption(env, 'COLLECT_ANALYZE_CONCURRENCY', 'analyzeConcurrency', 1),
     ...intOption(env, 'COLLECT_MAX_LLM_ITEMS', 'maxLlmItems', 0),
+    ...intOption(env, 'COLLECT_MAX_TRANSLATE_ITEMS', 'maxTranslateItems', 0),
   };
 }
 
