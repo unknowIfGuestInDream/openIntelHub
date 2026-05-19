@@ -8,7 +8,12 @@ import { makeSummary } from './extract/article.js';
 import { clusterByTitle, dedupe } from './dedupe.js';
 import { analyze } from './analyze/ai.js';
 import { translateToChinese } from './analyze/translate.js';
-import { defaultCategory, defaultTags, extractEntitiesFor } from './analyze/heuristic.js';
+import {
+  defaultCategory,
+  defaultTags,
+  extractEntitiesFor,
+  heuristicAnalyze,
+} from './analyze/heuristic.js';
 
 export interface PipelineOptions {
   /** Hard cap on items processed per source (defensive). */
@@ -17,14 +22,17 @@ export interface PipelineOptions {
   fetchConcurrency?: number;
   /** Concurrency for AI analysis. */
   analyzeConcurrency?: number;
+  /** Maximum number of articles allowed to call an external LLM. */
+  maxLlmItems?: number;
 }
 
 export async function runPipeline(opts: PipelineOptions = {}): Promise<CollectionResult> {
   const fetchConc = opts.fetchConcurrency ?? 4;
   const analyzeConc = opts.analyzeConcurrency ?? 4;
   const maxPerSource = opts.maxPerSource ?? 25;
+  const maxLlmItems = opts.maxLlmItems;
 
-  logger.info({ sources: SOURCES.length, fetchConc, analyzeConc }, 'starting collection');
+  logger.info({ sources: SOURCES.length, fetchConc, analyzeConc, maxLlmItems }, 'starting collection');
 
   // 1. Fetch in parallel with rate limiting.
   const fetchLimit = pLimit(fetchConc);
@@ -43,11 +51,14 @@ export async function runPipeline(opts: PipelineOptions = {}): Promise<Collectio
   // 2. Deduplicate by normalized URL.
   const deduped = dedupe(raw);
   logger.info({ before: raw.length, after: deduped.length }, 'deduped');
+  const llmItemIds = selectLlmItemIds(deduped, maxLlmItems);
 
   // 3. Analyze in parallel.
   const analyzeLimit = pLimit(analyzeConc);
   const items: NewsItem[] = await Promise.all(
-    deduped.map((a) => analyzeLimit(() => buildNewsItem(a))),
+    deduped.map((a) =>
+      analyzeLimit(() => buildNewsItem(a, shouldUseLlm(a, llmItemIds))),
+    ),
   );
 
   // 4. Cluster cross-source duplicates by title similarity.
@@ -72,15 +83,35 @@ export async function runPipeline(opts: PipelineOptions = {}): Promise<Collectio
   };
 }
 
-async function buildNewsItem(a: RawArticle): Promise<NewsItem> {
+export function selectLlmItemIds(
+  articles: RawArticle[],
+  maxLlmItems?: number,
+): Set<string> | null {
+  if (maxLlmItems === undefined) return null;
+  if (maxLlmItems <= 0) return new Set();
+  return new Set(
+    [...articles]
+      .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
+      .slice(0, maxLlmItems)
+      .map((a) => articleId(normalizeUrl(a.url))),
+  );
+}
+
+function shouldUseLlm(article: RawArticle, llmItemIds: Set<string> | null): boolean {
+  return llmItemIds === null || llmItemIds.has(articleId(normalizeUrl(article.url)));
+}
+
+async function buildNewsItem(a: RawArticle, useLlm: boolean): Promise<NewsItem> {
   const url = normalizeUrl(a.url);
   const id = articleId(url);
   const summary = makeSummary(a.description ?? a.content ?? a.title);
-  // Analysis and translation are independent network calls; run in parallel.
-  const [ai, translation] = await Promise.all([
-    analyze({ title: a.title, summary, domain: a.source.domain }),
-    translateToChinese({ title: a.title, summary, sourceLang: a.source.language }),
-  ]);
+  const analyzeInput = { title: a.title, summary, domain: a.source.domain };
+  const [ai, translation] = useLlm
+    ? await Promise.all([
+        analyze(analyzeInput),
+        translateToChinese({ title: a.title, summary, sourceLang: a.source.language }),
+      ])
+    : [heuristicAnalyze(analyzeInput), null];
 
   return {
     id,

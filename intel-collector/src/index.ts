@@ -3,6 +3,7 @@ import path from 'node:path';
 import { runPipeline } from './pipeline.js';
 import { logger } from './logger.js';
 import { HISTORY_RETENTION_DAYS, pruneHistory } from './history.js';
+import { pipelineOptionsFromEnv } from './config/options.js';
 
 /**
  * CLI entry. Runs the pipeline and writes the JSON to:
@@ -11,7 +12,7 @@ import { HISTORY_RETENTION_DAYS, pruneHistory } from './history.js';
  *   - ../IntelligenceHub/public/data/history/<YYYY-MM-DD>.json (daily snapshot, last 30 days)
  */
 async function main(): Promise<void> {
-  const result = await runPipeline();
+  const result = await runPipeline(pipelineOptionsFromEnv());
 
   const outDir = path.resolve(process.cwd(), 'output');
   await fs.mkdir(outDir, { recursive: true });
