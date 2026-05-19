@@ -68,6 +68,14 @@ AI_PROVIDER=ollama npm run collect
 
 任何 LLM 调用失败（超时、解析错误、非 200 响应）都会自动回退到 heuristic 分析器，整个流水线不会中断。
 
+> **在 GitHub Actions 中启用本地 Ollama**：只需把仓库变量 `AI_PROVIDER` 设为 `ollama`，
+> [`collect-and-deploy.yml`](.github/workflows/collect-and-deploy.yml) 会在 GitHub 托管的
+> runner 上自动 `curl install` Ollama、后台启动 `ollama serve`，并默认拉取
+> CPU 友好的 `llama3.2:1b`（可通过仓库变量 `OLLAMA_MODEL` 覆盖）。
+> 整个分析过程完全在 runner 内部完成，不需要任何远程 API key。
+> 若你已自托管 Ollama 实例并希望让工作流去远程调用，设置仓库变量
+> `OLLAMA_BASE_URL` 即可跳过这一步、改为通过 HTTP 访问你的远端服务。
+
 ### 中文翻译（标题与简介）
 
 外文新闻的 `title` / `summary` 可以在采集阶段顺手翻译成简体中文，写入
