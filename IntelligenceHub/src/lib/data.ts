@@ -1,6 +1,6 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
-import type { CollectionResult } from './types';
+import type { CollectionResult, NewsItem } from './types';
 
 const EMPTY: CollectionResult = {
   generatedAt: new Date(0).toISOString(),
@@ -63,4 +63,66 @@ export async function loadNewsForDate(date: string): Promise<CollectionResult | 
   } catch {
     return null;
   }
+}
+
+/**
+ * Return current snapshot together with every available historical snapshot
+ * (newest history first). The current snapshot is always included first so
+ * lookups prefer the freshest data when the same article appears multiple
+ * times across snapshots.
+ *
+ * Used by routes that must remain reachable for articles that were once
+ * collected but have since rotated out of the current `news.json`, e.g.
+ * `/news/[id]/` linked from older history pages. Without this, those links
+ * would 404 because `generateStaticParams` would only see current ids.
+ */
+export async function loadAllSnapshots(): Promise<CollectionResult[]> {
+  const snapshots: CollectionResult[] = [];
+  const current = await loadNews();
+  if (current.items.length > 0) snapshots.push(current);
+  const dates = await loadHistoryDates();
+  for (const d of dates) {
+    const data = await loadNewsForDate(d);
+    if (data) snapshots.push(data);
+  }
+  return snapshots;
+}
+
+/**
+ * Collect every unique article id known across the current snapshot and all
+ * historical snapshots. Order is deterministic (current first, then history
+ * newest → oldest, preserving each snapshot's own order) so static export
+ * output is stable across builds.
+ */
+export async function listAllItemIds(): Promise<string[]> {
+  const snapshots = await loadAllSnapshots();
+  const ids: string[] = [];
+  const seen = new Set<string>();
+  for (const s of snapshots) {
+    for (const i of s.items) {
+      if (seen.has(i.id)) continue;
+      seen.add(i.id);
+      ids.push(i.id);
+    }
+  }
+  return ids;
+}
+
+/**
+ * Look up an article by id across current + historical snapshots. Returns the
+ * matching item and the snapshot it was found in (so callers can also surface
+ * related cluster items from that same snapshot).
+ *
+ * The current snapshot is searched first to ensure the freshest analysis is
+ * preferred when the same id is present in multiple snapshots.
+ */
+export async function findItemById(
+  id: string,
+): Promise<{ item: NewsItem; snapshot: CollectionResult } | null> {
+  const snapshots = await loadAllSnapshots();
+  for (const snapshot of snapshots) {
+    const item = snapshot.items.find((i) => i.id === id);
+    if (item) return { item, snapshot };
+  }
+  return null;
 }

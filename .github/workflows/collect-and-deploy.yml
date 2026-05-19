@@ -25,6 +25,49 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Pull existing daily history snapshots back from the deploy target so
+      # the upcoming collect/build step keeps every previously published day
+      # (otherwise each fresh CI checkout would start from an empty
+      # `public/data/history/`, and the final `rsync --delete` would wipe all
+      # but today's snapshot from the server — see issue about broken
+      # `/history/<date>/` links). Best-effort: skip silently when secrets are
+      # missing or the directory does not yet exist on the server.
+      - name: Restore history snapshots from deploy target
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+          REMOTE_USER: ${{ secrets.REMOTE_USER }}
+          REMOTE_TARGET: ${{ secrets.REMOTE_TARGET }}
+          REMOTE_PORT: ${{ secrets.REMOTE_PORT }}
+        run: |
+          set -euo pipefail
+          mkdir -p IntelligenceHub/public/data/history
+          if [ -z "${SSH_PRIVATE_KEY:-}" ] || [ -z "${REMOTE_HOST:-}" ] \
+              || [ -z "${REMOTE_USER:-}" ] || [ -z "${REMOTE_TARGET:-}" ]; then
+            echo "deploy secrets not configured — skipping history restore"
+            exit 0
+          fi
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          # Always remove the private key on exit, even if a later command fails.
+          trap 'rm -f ~/.ssh/deploy_key' EXIT
+          port="${REMOTE_PORT:-22}"
+          # Pin the server's host key from this run into known_hosts; combined
+          # with StrictHostKeyChecking=yes this prevents silent acceptance of
+          # a swapped key on subsequent ssh calls within this step.
+          ssh-keyscan -p "$port" -H "$REMOTE_HOST" >> ~/.ssh/known_hosts 2>/dev/null \
+            || echo "warning: ssh-keyscan failed for ${REMOTE_HOST}:${port}; relying on existing known_hosts"
+          target="${REMOTE_TARGET%/}"
+          # Trailing slash on source so contents (not the dir itself) are copied.
+          # `|| true` keeps the workflow green when the remote dir is empty/missing
+          # on the very first deploy.
+          rsync -avz \
+            -e "ssh -i ~/.ssh/deploy_key -p $port -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$HOME/.ssh/known_hosts" \
+            "${REMOTE_USER}@${REMOTE_HOST}:${target}/data/history/" \
+            IntelligenceHub/public/data/history/ || true
+
       - name: Collect & analyze news
         env:
           # AI provider selection. Set repo variable AI_PROVIDER to one of:
