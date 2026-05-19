@@ -6,6 +6,21 @@ import { logger } from '../logger.js';
 const parser = new Parser({ timeout: 15_000 });
 
 /**
+ * Resolve an RSS item's publishedAt timestamp. Falls back to the Unix epoch
+ * (1970-01-01T00:00:00.000Z) when neither `isoDate` nor `pubDate` is present.
+ *
+ * Some feeds (notably news.cn) omit a parseable pubDate. Falling back to
+ * `Date.now()` here would stamp every such item with the collection time —
+ * they would then sweep the publishedAt-desc tiebreak in the pipeline sort
+ * *and* match the site's "today" filter en masse, pushing legitimately-dated
+ * news off the homepage. The epoch sentinel keeps undated items in the
+ * dataset but sinks them to the bottom of the timeline.
+ */
+export function resolvePublishedAt(item: { isoDate?: string; pubDate?: string }): string {
+  return item.isoDate ?? item.pubDate ?? new Date(0).toISOString();
+}
+
+/**
  * Coerce an RSS field value into a plain string.
  *
  * `rss-parser` (via `xml2js`) represents elements that carry XML attributes
@@ -67,7 +82,7 @@ export async function fetchFromSource(source: MediaSource): Promise<RawArticle[]
           source,
           title: title.trim(),
           url: link,
-          publishedAt: item.isoDate ?? item.pubDate ?? new Date().toISOString(),
+          publishedAt: resolvePublishedAt(item),
           description:
             coerceText(item.contentSnippet) ??
             coerceText(item.content) ??
