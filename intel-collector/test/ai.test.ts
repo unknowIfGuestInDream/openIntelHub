@@ -1,41 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { resolveProvider, extractJson, analyze } from '../src/analyze/ai.ts';
-
-function withEnv(env: Record<string, string | undefined>, fn: () => void | Promise<void>): void | Promise<void> {
-  const orig: Record<string, string | undefined> = {};
-  for (const k of Object.keys(env)) {
-    orig[k] = process.env[k];
-    if (env[k] === undefined) delete process.env[k];
-    else process.env[k] = env[k];
-  }
-  const restore = () => {
-    for (const k of Object.keys(orig)) {
-      if (orig[k] === undefined) delete process.env[k];
-      else process.env[k] = orig[k];
-    }
-  };
-  let result: void | Promise<void>;
-  try {
-    result = fn();
-  } catch (err) {
-    restore();
-    throw err;
-  }
-  if (result && typeof (result as Promise<void>).then === 'function') {
-    return (result as Promise<void>).then(
-      (v) => {
-        restore();
-        return v;
-      },
-      (err) => {
-        restore();
-        throw err;
-      },
-    );
-  }
-  restore();
-}
+import { withEnv } from './helpers.ts';
 
 test('resolveProvider defaults to heuristic with no env', () => {
   withEnv({ AI_PROVIDER: undefined, OPENAI_API_KEY: undefined }, () => {
