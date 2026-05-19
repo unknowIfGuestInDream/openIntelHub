@@ -5,41 +5,7 @@ import {
   extractTranslation,
   translateToChinese,
 } from '../src/analyze/translate.ts';
-
-function withEnv(env: Record<string, string | undefined>, fn: () => void | Promise<void>): void | Promise<void> {
-  const orig: Record<string, string | undefined> = {};
-  for (const k of Object.keys(env)) {
-    orig[k] = process.env[k];
-    if (env[k] === undefined) delete process.env[k];
-    else process.env[k] = env[k];
-  }
-  const restore = () => {
-    for (const k of Object.keys(orig)) {
-      if (orig[k] === undefined) delete process.env[k];
-      else process.env[k] = orig[k];
-    }
-  };
-  let result: void | Promise<void>;
-  try {
-    result = fn();
-  } catch (err) {
-    restore();
-    throw err;
-  }
-  if (result && typeof (result as Promise<void>).then === 'function') {
-    return (result as Promise<void>).then(
-      (v) => {
-        restore();
-        return v;
-      },
-      (err) => {
-        restore();
-        throw err;
-      },
-    );
-  }
-  restore();
-}
+import { withEnv } from './helpers.ts';
 
 test('resolveTranslateProvider defaults to none with no env', () => {
   withEnv(
@@ -123,4 +89,41 @@ test('translateToChinese returns null when provider is none', async () => {
       assert.equal(r, null);
     },
   );
+});
+
+test('translateToChinese uses Ollama defaults when workflow env vars are blank', async () => {
+  const originalFetch = globalThis.fetch;
+  let capturedUrl = '';
+  let capturedModel = '';
+  globalThis.fetch = (async (input, init) => {
+    capturedUrl = String(input);
+    const body = JSON.parse(String(init?.body)) as { model?: string };
+    capturedModel = body.model ?? '';
+    return new Response(
+      JSON.stringify({
+        choices: [{ message: { content: '{"titleCN":"你好","summaryCN":"世界"}' } }],
+      }),
+      { status: 200, headers: { 'Content-Type': 'application/json' } },
+    );
+  }) as typeof fetch;
+  try {
+    await withEnv(
+      {
+        TRANSLATE_PROVIDER: 'ollama',
+        AI_PROVIDER: undefined,
+        OLLAMA_BASE_URL: '',
+        OLLAMA_MODEL: '',
+        TRANSLATE_MODEL: '',
+        OPENAI_API_KEY: undefined,
+      },
+      async () => {
+        const r = await translateToChinese({ title: 'Hello', summary: 'World', sourceLang: 'en' });
+        assert.deepEqual(r, { titleCN: '你好', summaryCN: '世界' });
+      },
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+  assert.equal(capturedUrl, 'http://127.0.0.1:11434/v1/chat/completions');
+  assert.equal(capturedModel, 'llama3.1');
 });

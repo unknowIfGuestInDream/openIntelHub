@@ -1,5 +1,6 @@
 import { logger } from '../logger.js';
 import { withRetry } from '../utils/retry.js';
+import { envOrDefault, firstEnvOrDefault } from '../utils/env.js';
 
 /**
  * Pluggable text translator. Mirrors the analyzer's provider model so the
@@ -90,15 +91,15 @@ interface ProviderConfig {
 function providerConfig(provider: 'ollama' | 'openai'): ProviderConfig {
   if (provider === 'ollama') {
     return {
-      baseUrl: process.env.OLLAMA_BASE_URL ?? 'http://127.0.0.1:11434/v1',
-      model: process.env.TRANSLATE_MODEL ?? process.env.OLLAMA_MODEL ?? 'llama3.1',
+      baseUrl: envOrDefault('OLLAMA_BASE_URL', 'http://127.0.0.1:11434/v1'),
+      model: firstEnvOrDefault(['TRANSLATE_MODEL', 'OLLAMA_MODEL'], 'llama3.1'),
       apiKey: null,
     };
   }
   return {
-    baseUrl: process.env.OPENAI_BASE_URL ?? 'https://api.openai.com/v1',
-    model: process.env.TRANSLATE_MODEL ?? process.env.OPENAI_MODEL ?? 'gpt-4o-mini',
-    apiKey: process.env.OPENAI_API_KEY ?? null,
+    baseUrl: envOrDefault('OPENAI_BASE_URL', 'https://api.openai.com/v1'),
+    model: firstEnvOrDefault(['TRANSLATE_MODEL', 'OPENAI_MODEL'], 'gpt-4o-mini'),
+    apiKey: process.env.OPENAI_API_KEY?.trim() || null,
   };
 }
 
