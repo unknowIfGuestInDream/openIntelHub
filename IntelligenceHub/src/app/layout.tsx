@@ -18,8 +18,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Nav />
         <main className="mx-auto max-w-6xl px-4 py-8">{children}</main>
         <footer className="border-t border-slate-800 py-6 text-center text-xs text-slate-500">
-          <div>由 OpenIntelHub 构建 · 数据通过 GitHub Actions 自动重建</div>
-          <p className="footer-beian mt-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+          <p className="footer-beian flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
             <a
               href="https://beian.miit.gov.cn/"
               target="_blank"
@@ -42,7 +41,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 height={14}
                 decoding="async"
                 className="footer-beian-icon"
-                src="/beian.svg"
+                src="/beian.png"
               />
               辽公网安备21020302000532号
             </a>
