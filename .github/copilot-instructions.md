@@ -127,6 +127,7 @@ chore(deps): bump next to 15.5.18
 - 标题遵循同样的 Angular 格式。
 - 描述使用中文，包含动机、关键改动、验证方式（命令 + 截图）。
 - 默认审核人：`@unknowIfGuestInDream`（见 `CODEOWNERS`）。
+- PR中进行总结和发布comments时使用中文
 
 ## 安全与隐私
 
