@@ -100,8 +100,7 @@ AI_PROVIDER=ollama OLLAMA_MODEL=qwen2.5:7b npm run collect
 `IntelligenceHub` 使用 Next.js 静态导出（`output: 'export'` + `trailingSlash: true`），
 每个路由会落到 `<route>/index.html`（如 `out/history/index.html`、`out/news/<id>/index.html`）。
 浏览器请求 `/history/`、`/events/`、`/risk/`、`/bias/`、`/news/<id>/` 等链接时，
-**Web 服务器必须能自动把目录请求回退到目录内的 `index.html`**，否则会全部返回 404
-（issue #40 即由此引发）。Next.js 16 的 `<Link>` 客户端导航还会去拉同目录下的
+**Web 服务器必须能自动把目录请求回退到目录内的 `index.html`**，否则会全部返回 404。Next.js 16 的 `<Link>` 客户端导航还会去拉同目录下的
 `index.txt` 作为 RSC 负载，因此 `.txt` 也要正常返回。
 
 Nginx 推荐配置见 [`IntelligenceHub/deploy/nginx.conf.example`](./IntelligenceHub/deploy/nginx.conf.example)，
