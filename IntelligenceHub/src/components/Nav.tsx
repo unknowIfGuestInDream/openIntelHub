@@ -2,7 +2,6 @@ import Link from 'next/link';
 
 const links = [
   { href: '/', label: '今日' },
-  { href: '/all/', label: '全部新闻' },
   { href: '/history/', label: '历史' },
   { href: '/events/', label: '事件' },
   { href: '/risk/', label: '风险分析' },

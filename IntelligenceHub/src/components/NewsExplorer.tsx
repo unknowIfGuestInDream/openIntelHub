@@ -99,7 +99,7 @@ export function NewsExplorer({ items }: NewsExplorerProps) {
   return (
     <div className="space-y-6">
       <div className="space-y-3 rounded-lg border border-slate-800 bg-slate-900/60 p-4">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <div className="flex flex-col gap-2">
           <label htmlFor="news-search" className="sr-only">
             搜索新闻
           </label>
@@ -109,16 +109,18 @@ export function NewsExplorer({ items }: NewsExplorerProps) {
             value={query}
             onChange={(e) => update(setQuery, e.target.value)}
             placeholder="搜索标题、摘要、信息源、标签或实体（如 GitHub、AI）…"
-            className="flex-1 rounded border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-brand-500 focus:outline-none"
+            className="w-full rounded border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-brand-500 focus:outline-none"
           />
           {hasFilters && (
-            <button
-              type="button"
-              onClick={reset}
-              className="rounded border border-slate-700 px-3 py-2 text-xs text-slate-300 hover:border-brand-500 hover:text-brand-500"
-            >
-              清除筛选
-            </button>
+            <div>
+              <button
+                type="button"
+                onClick={reset}
+                className="rounded border border-slate-700 px-3 py-1.5 text-xs text-slate-300 hover:border-brand-500 hover:text-brand-500"
+              >
+                清除筛选
+              </button>
+            </div>
           )}
         </div>
 
