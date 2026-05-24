@@ -9,7 +9,9 @@ export default async function HomePage() {
   // (e.g. on first deploy when only seed/sample data is present).
   const today = (data.generatedAt || new Date().toISOString()).slice(0, 10);
   const todayItems = data.items.filter((i) => i.publishedAt.slice(0, 10) === today);
-  const visible = (todayItems.length > 0 ? todayItems : data.items).slice(0, 24);
+  const baseItems = todayItems.length > 0 ? todayItems : data.items;
+  const visible = baseItems.slice(0, 24);
+  const hasMore = baseItems.length > visible.length;
   const countries = [...new Set(data.items.map((i) => i.source.country))].sort();
 
   return (
@@ -22,6 +24,10 @@ export default async function HomePage() {
         </p>
         <p className="mt-1 text-xs text-slate-500">
           默认仅显示当日（{today}）的新闻 ·{' '}
+          <Link href="/all/" className="text-brand-500 hover:underline">
+            浏览全部新闻
+          </Link>{' '}
+          ·{' '}
           <Link href="/history/" className="text-brand-500 hover:underline">
             查看历史日报
           </Link>
@@ -55,6 +61,17 @@ export default async function HomePage() {
           visible.map((item) => <NewsCard key={item.id} item={item} />)
         )}
       </section>
+
+      {hasMore && (
+        <p className="text-center text-sm">
+          <Link
+            href="/all/"
+            className="inline-block rounded border border-slate-700 px-4 py-2 text-slate-300 hover:border-brand-500 hover:text-brand-500"
+          >
+            查看全部 {baseItems.length} 篇新闻 →
+          </Link>
+        </p>
+      )}
     </div>
   );
 }
