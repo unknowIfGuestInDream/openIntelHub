@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { loadNews } from '@/lib/data';
+import { formatBeijingDateTime } from '@/lib/datetime';
 import { NewsCard } from '@/components/NewsCard';
 
 export default async function HomePage() {
@@ -20,7 +21,7 @@ export default async function HomePage() {
         <h1 className="text-3xl font-bold text-slate-100">全球新闻情报</h1>
         <p className="mt-2 text-slate-400">
           {data.totalArticles} 篇文章 · {data.totalSources} 个信息源 · 生成于{' '}
-          {new Date(data.generatedAt).toLocaleString('zh-CN')}
+          {formatBeijingDateTime(data.generatedAt)}（北京时间）
         </p>
         <p className="mt-1 text-xs text-slate-500">
           默认仅显示当日（{today}）的新闻 ·{' '}

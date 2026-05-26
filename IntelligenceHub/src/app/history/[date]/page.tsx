@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { loadHistoryDates, loadNews, loadNewsForDate } from '@/lib/data';
+import { formatBeijingDateTime } from '@/lib/datetime';
 import { NewsCard } from '@/components/NewsCard';
 
 export async function generateStaticParams() {
@@ -44,7 +45,7 @@ export default async function HistoryDatePage({ params }: PageProps) {
         </Link>
         <h1 className="text-3xl font-bold text-slate-100">{date} 日报</h1>
         <p className="text-sm text-slate-400">
-          快照生成于 {new Date(data.generatedAt).toLocaleString('zh-CN')} · 共 {items.length} 篇
+          快照生成于 {formatBeijingDateTime(data.generatedAt)}（北京时间） · 共 {items.length} 篇
         </p>
       </header>
 
