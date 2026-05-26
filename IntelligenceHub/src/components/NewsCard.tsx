@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { NewsItem } from '@/lib/types';
+import { formatBeijingDateTime } from '@/lib/datetime';
 
 const SENTIMENT_LABEL: Record<NewsItem['ai']['sentiment'], string> = {
   positive: '正面',
@@ -21,7 +22,7 @@ export function NewsCard({ item }: { item: NewsItem }) {
           {item.source.flag} {item.source.nameCN}
         </span>
         <time dateTime={item.publishedAt}>
-          {new Date(item.publishedAt).toLocaleString('zh-CN')}
+          {formatBeijingDateTime(item.publishedAt)}
         </time>
       </div>
       <Link href={`/news/${item.id}/`} className="block">

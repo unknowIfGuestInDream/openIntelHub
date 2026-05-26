@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { findItemById, listAllItemIds } from '@/lib/data';
+import { formatBeijingDateTime } from '@/lib/datetime';
 import type { NarrativeBias, Sentiment } from '@/lib/types';
 
 const SENTIMENT_LABEL: Record<Sentiment, string> = {
@@ -51,7 +52,7 @@ export default async function NewsDetailPage({ params }: PageProps) {
       <header className="space-y-2">
         <div className="text-sm text-slate-400">
           {item.source.flag} {item.source.nameCN} · {item.source.country} ·{' '}
-          {new Date(item.publishedAt).toLocaleString('zh-CN')}
+          {formatBeijingDateTime(item.publishedAt)}
         </div>
         <h1 className="text-3xl font-bold text-slate-100">{item.titleCN ?? item.title}</h1>
         {item.titleCN && (
