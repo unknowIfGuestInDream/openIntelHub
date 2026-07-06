@@ -18,7 +18,7 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\""
   },
   "devDependencies": {
-    "prettier": "^3.9.1"
+    "prettier": "^3.9.4"
   },
   "engines": {
     "node": ">=24.0.0"
