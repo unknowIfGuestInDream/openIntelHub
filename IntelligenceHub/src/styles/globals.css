@@ -1,6 +1,5 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+@config '../../tailwind.config.ts';
 
 /* Default (dark) tokens — used when the user's OS/browser prefers dark, or as a fallback. */
 :root {
