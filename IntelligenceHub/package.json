@@ -14,8 +14,8 @@
     "echarts": "^6.1.0",
     "echarts-for-react": "^3.0.6",
     "next": "^16.4.0",
-    "react": "^19.3.0",
-    "react-dom": "^19.3.0"
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",
